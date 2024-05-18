@@ -15,8 +15,9 @@ class Config:
     plot_flag = False # plots sim iterations
 ```
 Example output:
-![image](https://github.com/t-mccawley/fire_sim/assets/29646748/cac48f36-3a1a-4a19-a785-c17687b984b6)
 
-Underlying S&P 500 returns data and probability model:
+![image](https://github.com/t-mccawley/fire_sim/assets/29646748/cac48f36-3a1a-4a19-a785-c17687b984b6)
+## Appendix
+### Underlying S&P 500 returns data and probability model:
 ![image](https://github.com/t-mccawley/fire_sim/assets/29646748/e60c1291-5226-46b7-86ab-75ac8c9d388e)
 ![image](https://github.com/t-mccawley/fire_sim/assets/29646748/b129cdc1-eb27-475d-a630-2e23f60e8634)
