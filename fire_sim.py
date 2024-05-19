@@ -71,7 +71,7 @@ class SimState:
         print(f"  Age: {self.config.get_retirement_start_age()}")
         print(f"  Balance: ${self.config.get_retirement_start_balance_m()}M")
         print(f"  Bonds Allocation: {int(round(self.config.get_retirement_balance_bonds_fraction(self.config.get_retirement_start_age())*100))}%")
-        print(f"  Annual Living Costs: ${int(round(self.config.get_retirement_costs_inflation_adjusted(self.config.get_retirement_start_age(),0.0)))}")
+        print(f"  Annual Living Costs: ${int(round(self.config.get_retirement_costs_inflation_adjusted(self.config.get_retirement_start_age(),100.0)))}")
         print(f"General:")
         print(f"  Average Market Returns: {round(np.average(self.it_average_market_return_array)*100,2)}%")
         print(f"  Average Bonds Returns: {round(BONDS_AVERAGE_RETURNS_RATE*100,2)}%")
