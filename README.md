@@ -4,16 +4,8 @@ A simulation used for FIRE (Financial Independence Retire Early) planning.
 Simulates an account balance post retirement by modeling the S&P 500 annual returns as a normal distribution fit to historical data.
 The output `Risk` represents the number of iterations (simulation from retirement to death) for which the account balance ended negative (driven primarily by Sequence of Returns Risk).
 
-To use the sim, simply add a `config.py` file which implements the following class:
-```
-class Config:
-    start_age = 40 # retirement age
-    start_balance_millions = 2.0 # millions of dollars
-    retirement_costs = 100000 # annual retirement costs at retirement_costs_age (will be adjusted for inflation)
-    retirement_costs_age = 35 # age that retirement_costs is valid
-    social_security_monthly = 100
-    plot_flag = False # plots sim iterations
-```
+To use the sim, simply implement a `Config(ConfigABC)` in `config.py` to store your input parameters and configurations.
+
 Example output:
 
 ![image](https://github.com/t-mccawley/fire_sim/assets/29646748/cac48f36-3a1a-4a19-a785-c17687b984b6)
