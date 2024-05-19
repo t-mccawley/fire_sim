@@ -1,4 +1,4 @@
-from constants import END_AGE, NUM_ITERATIONS, SOCIAL_SECURITY_AGE, INFLATION_RATE
+from constants import END_AGE, NUM_ITERATIONS, BONDS_AVERAGE_RETURNS_RATE, INFLATION_RATE
 from market_model import get_random_market_return_rate
 from config import Config
 import matplotlib.pyplot as plt
@@ -14,6 +14,7 @@ class SimState:
         # initiailize iteration variables
         self.start_interation()
         # outputs
+        self.it_average_market_return_array = []
         self.it_end_balance_array = []
         self.it_age_zero_balance_array = []
         if self.config.get_plot_flag():
@@ -24,21 +25,29 @@ class SimState:
         self.it_age_zero_balance = END_AGE
         self.it_prev_market_return_rate = 0.0
         self.it_balance = self.config.get_retirement_start_balance()
-        self.it_age_array = []
-        self.it_balance_array = []
+        self.it_age_array = [self.it_age]
+        self.it_balance_array = [self.it_balance]
+        self.it_market_return_array = []
     
     def step_iteration(self):
         market_return_rate = get_random_market_return_rate()
+        bonds_fraction = self.config.get_retirement_balance_bonds_fraction(self.it_age)
         costs = self.config.get_retirement_costs_inflation_adjusted(self.it_age,self.it_prev_market_return_rate)
+        # apply costs (conservatively assumes costs applied before returns)
+        self.it_balance += -costs
+        # calculate returns
+        bonds_return = self.it_balance*bonds_fraction*BONDS_AVERAGE_RETURNS_RATE
+        market_return = self.it_balance*(1-bonds_fraction)*market_return_rate
         social_security = self.config.get_social_security_annual_inflation_adjusted(self.it_age)
-        market_return = (self.it_balance - costs/2) * market_return_rate # average market balance
-        self.it_balance += market_return + social_security - costs
+        # apply returns
+        self.it_balance += bonds_return + market_return + social_security
         # save outputs
         if self.it_balance <= 0 and self.it_age < self.it_age_zero_balance:
             self.it_age_zero_balance = self.it_age
+        self.it_prev_market_return_rate = market_return_rate
+        self.it_market_return_array.append(market_return_rate)
         # increment
         self.it_age += 1
-        self.it_prev_market_return_rate = market_return
         if self.config.get_plot_flag():
             self.it_age_array.append(self.it_age)
             self.it_balance_array.append(self.it_balance)
@@ -46,6 +55,7 @@ class SimState:
     def end_iteration(self):
         self.it_end_balance_array.append(self.it_balance)
         self.it_age_zero_balance_array.append(self.it_age_zero_balance)
+        self.it_average_market_return_array.append(np.average(self.it_market_return_array))
         plt.plot(self.it_age_array,self.it_balance_array)
 
     def get_risk(self):
@@ -55,10 +65,17 @@ class SimState:
         return(np.average(self.it_age_zero_balance_array))
     
     def results(self):
+        print()
         print("===INPUTS===")
-        print(f"  Retirement Age: {self.config.get_retirement_start_age()}")
-        print(f"  Starting Balance: ${self.config.get_retirement_start_balance_m()}M")
-        print(f"  Inflation: {round(INFLATION_RATE*100,2)}%")
+        print(f"State at Retirement Start:")
+        print(f"  Age: {self.config.get_retirement_start_age()}")
+        print(f"  Balance: ${self.config.get_retirement_start_balance_m()}M")
+        print(f"  Bonds Allocation: {int(round(self.config.get_retirement_balance_bonds_fraction(self.config.get_retirement_start_age())*100))}%")
+        print(f"  Annual Living Costs: ${int(round(self.config.get_retirement_costs_inflation_adjusted(self.config.get_retirement_start_age(),0.0)))}")
+        print(f"General:")
+        print(f"  Average Market Returns: {round(np.average(self.it_average_market_return_array)*100,2)}%")
+        print(f"  Average Bonds Returns: {round(BONDS_AVERAGE_RETURNS_RATE*100,2)}%")
+        print(f"  Inflation: {round(INFLATION_RATE*100,2)}%")  
         print(f"  N Iterations: {NUM_ITERATIONS}")
         print("===OUTPUTS===")
         print(f"  Risk: {int(round(self.get_risk()*100,0))}%")

@@ -33,9 +33,13 @@ class ConfigABC(ABC):
         pass
 
     @abstractmethod
-    def get_baseline_retirement_costs(self,previous_year_market_return_rate:float) -> float:
+    def get_baseline_retirement_costs(self,previous_year_market_return_rate:float,age:int) -> float:
         """Returns the annual retirement costs for a given baseline (get_baseline_retirement_costs_age)"""
         pass
+
+    @abstractmethod
+    def get_retirement_balance_bonds_fraction(self) -> float:
+        """Returns the fraction of retirement balance that is invested in bonds"""
 
     def get_retirement_start_balance(self) -> float:
         """Returns the starting retirmenet balance"""
@@ -45,7 +49,7 @@ class ConfigABC(ABC):
         """Returns the annual retirement costs after inflation adjustment"""
         if age < self.get_baseline_retirement_costs_age():
             raise Exception(f"{age} less than {self.get_baseline_retirement_costs_age()}")
-        initial_amount = self.get_baseline_retirement_costs(previous_year_market_return_rate)
+        initial_amount = self.get_baseline_retirement_costs(previous_year_market_return_rate,age)
         time_period = age - self.get_baseline_retirement_costs_age()
         return(inflation_adjustment(initial_amount,time_period))
     
