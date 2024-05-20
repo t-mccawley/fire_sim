@@ -3,6 +3,7 @@ from market_model import get_random_market_return_rate
 from config import Config
 import matplotlib.pyplot as plt
 import numpy as np
+from utils import convert_to_millions_string, convert_to_thousands_string
 
 class SimState:
     def __init__(
@@ -32,13 +33,20 @@ class SimState:
     def step_iteration(self):
         market_return_rate = get_random_market_return_rate()
         bonds_fraction = self.config.get_retirement_balance_bonds_fraction(self.it_age)
-        costs = self.config.get_retirement_costs_inflation_adjusted(self.it_age,self.it_prev_market_return_rate)
+        costs = self.config.get_retirement_costs(
+            inf_adj=True,
+            age=self.it_age,
+            previous_year_market_return_rate=self.it_prev_market_return_rate,
+        )
         # apply costs (conservatively assumes costs applied before returns)
         self.it_balance += -costs
         # calculate returns
         bonds_return = self.it_balance*bonds_fraction*BONDS_AVERAGE_RETURNS_RATE
         market_return = self.it_balance*(1-bonds_fraction)*market_return_rate
-        social_security = self.config.get_social_security_annual_inflation_adjusted(self.it_age)
+        social_security = self.config.get_social_security_annual(
+            inf_adj=True,
+            age=self.it_age,
+        )
         # apply returns
         self.it_balance += bonds_return + market_return + social_security
         # save outputs
@@ -67,11 +75,18 @@ class SimState:
     def results(self):
         print()
         print("===INPUTS===")
-        print(f"State at Retirement Start:")
+        print(f"Retirement Start:")
         print(f"  Age: {self.config.get_retirement_start_age()}")
         print(f"  Balance: ${self.config.get_retirement_start_balance_m()}M")
         print(f"  Bonds Allocation: {int(round(self.config.get_retirement_balance_bonds_fraction(self.config.get_retirement_start_age())*100))}%")
-        print(f"  Annual Living Costs: ${int(round(self.config.get_retirement_costs_inflation_adjusted(self.config.get_retirement_start_age(),100.0)))}")
+        print(f"  Annual Living Costs (base): "+convert_to_thousands_string(int(round(self.config.get_retirement_costs(inf_adj=False,age=self.config.get_retirement_start_age(),previous_year_market_return_rate=100.0)))))
+        print(f"  Annual Living Costs (inf. adj.): "+convert_to_thousands_string(int(round(self.config.get_retirement_costs(inf_adj=True,age=self.config.get_retirement_start_age(),previous_year_market_return_rate=100.0)))))  
+        print(f"Retirement End:")
+        print(f"  Age: {END_AGE}")
+        print(f"  Balance (median): "+convert_to_millions_string(np.median(self.it_end_balance_array)))
+        print(f"  Bonds Allocation: {int(round(self.config.get_retirement_balance_bonds_fraction(END_AGE)*100))}%")
+        print(f"  Annual Living Costs (base): "+convert_to_thousands_string(int(round(self.config.get_retirement_costs(inf_adj=False,age=END_AGE,previous_year_market_return_rate=100.0)))))
+        print(f"  Annual Living Costs (inf. adj.): "+convert_to_thousands_string(int(round(self.config.get_retirement_costs(inf_adj=True,age=END_AGE,previous_year_market_return_rate=100.0))))) 
         print(f"General:")
         print(f"  Average Market Returns: {round(np.average(self.it_average_market_return_array)*100,2)}%")
         print(f"  Average Bonds Returns: {round(BONDS_AVERAGE_RETURNS_RATE*100,2)}%")
